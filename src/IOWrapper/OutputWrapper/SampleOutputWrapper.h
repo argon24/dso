@@ -1,6 +1,6 @@
 /**
 * This file is part of DSO.
-* 
+*
 * Copyright 2016 Technical University of Munich and Intel.
 * Developed by Jakob Engel <engelj at in dot tum dot de>,
 * for more information see <http://vision.in.tum.de/dso>.
@@ -56,7 +56,7 @@ public:
             printf("OUT: Destroyed SampleOutputWrapper\n");
         }
 
-        virtual void publishGraph(const std::map<uint64_t, Eigen::Vector2i, std::less<uint64_t>, Eigen::aligned_allocator<std::pair<const uint64_t, Eigen::Vector2i>>> &connectivity) override
+        virtual void publishGraph(const std::map<uint64_t,Eigen::Vector2i> &connectivity)
         {
             printf("OUT: got graph with %d edges\n", (int)connectivity.size());
 
@@ -74,8 +74,21 @@ public:
 
 
 
-        virtual void publishKeyframes( std::vector<FrameHessian*> &frames, bool final, CalibHessian* HCalib) override
+        virtual void publishKeyframes( std::vector<FrameHessian*> &frames, bool final, CalibHessian* HCalib)
         {
+            float fx = HCalib->fxl();
+            float fy = HCalib->fyl();
+            float cx = HCalib->cxl();
+            float cy = HCalib->cyl();
+            float fxi = 1/fx;
+            float fyi = 1/fy;
+            float cxi = -cx / fx;
+            float cyi = -cy / fy;
+
+            // Open stream to write in file "points.ply"
+            std::ofstream output_points;
+            output_points.open("points.ply", std::ios_base::app);
+
             for(FrameHessian* f : frames)
             {
                 printf("OUT: KF %d (%s) (id %d, tme %f): %d active, %d marginalized, %d immature points. CameraToWorld:\n",
@@ -95,10 +108,28 @@ public:
                     maxWrite--;
                     if(maxWrite==0) break;
                 }
+
+                auto const & m =  f->shell->camToWorld.matrix3x4();
+                auto const & points = f->pointHessiansMarginalized;
+
+                for (auto const * p : points) {
+                  float depth = 1.0f / p->idepth;
+                  auto const x = (p->u * fxi + cxi) * depth;
+                  auto const y = (p->v * fyi + cyi) * depth;
+                  auto const z = depth * (1 + 2*fxi);
+
+                  Eigen::Vector4d camPoint(x, y, z, 1.f);
+                  Eigen::Vector3d worldPoint = m * camPoint;
+
+                  output_points << worldPoint.transpose() << std::endl;
+                }
             }
+
+            // Close steam
+            output_points.close();
         }
 
-        virtual void publishCamPose(FrameShell* frame, CalibHessian* HCalib) override
+        virtual void publishCamPose(FrameShell* frame, CalibHessian* HCalib)
         {
             printf("OUT: Current Frame %d (time %f, internal ID %d). CameraToWorld:\n",
                    frame->incoming_id,
@@ -108,21 +139,21 @@ public:
         }
 
 
-        virtual void pushLiveFrame(FrameHessian* image) override
+        virtual void pushLiveFrame(FrameHessian* image)
         {
             // can be used to get the raw image / intensity pyramid.
         }
 
-        virtual void pushDepthImage(MinimalImageB3* image) override
+        virtual void pushDepthImage(MinimalImageB3* image)
         {
             // can be used to get the raw image with depth overlay.
         }
-        virtual bool needPushDepthImage() override
+        virtual bool needPushDepthImage()
         {
             return false;
         }
 
-        virtual void pushDepthImageFloat(MinimalImageF* image, FrameHessian* KF ) override
+        virtual void pushDepthImageFloat(MinimalImageF* image, FrameHessian* KF )
         {
             printf("OUT: Predicted depth for KF %d (id %d, time %f, internal frame-ID %d). CameraToWorld:\n",
                    KF->frameID,
@@ -156,3 +187,4 @@ public:
 
 
 }
+
