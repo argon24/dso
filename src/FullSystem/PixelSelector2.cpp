@@ -91,7 +91,7 @@ void PixelSelector::makeHists(const FrameHessian* const fh)
 		for(int x=0;x<w32;x++)
 		{
 			float* map0 = mapmax0+32*x+32*y*w;
-			int* hist0 = gradHist;// + 50*(x+y*w32);
+                        int* hist0 = gradHist;// + 50*(x+y*w32);
 			memset(hist0,0,sizeof(int)*50);
 
 			for(int j=0;j<32;j++) for(int i=0;i<32;i++)
