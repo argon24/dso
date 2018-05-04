@@ -887,20 +887,18 @@ void FullSystem::addActiveFrame( ImageAndExposure* image, int id )
 					2*coarseTracker->firstCoarseRMSE < tres[0];
 
 		}
-
-
-
-
-        for(IOWrap::Output3DWrapper* ow : outputWrapper)
-            ow->publishCamPose(fh->shell, &Hcalib);
-
-
-
+		
+		for(IOWrap::Output3DWrapper* ow : outputWrapper){
+			ow->publishCamPose(fh->shell, &Hcalib);
+		}
 
 		lock.unlock();
 		deliverTrackedFrame(fh, needToMakeKF);
 		return;
 	}
+	
+
+
 }
 void FullSystem::deliverTrackedFrame(FrameHessian* fh, bool needKF)
 {

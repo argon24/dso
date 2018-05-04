@@ -46,16 +46,20 @@ namespace IOWrap
 class SampleOutputWrapper : public Output3DWrapper
 {
 public:
+		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+		std::vector<Eigen::Vector3d,Eigen::aligned_allocator<Eigen::Vector3d>> pointCloud;
+		
         inline SampleOutputWrapper()
         {
             printf("OUT: Created SampleOutputWrapper\n");
+            pointCloud.clear();
         }
 
         virtual ~SampleOutputWrapper()
         {
             printf("OUT: Destroyed SampleOutputWrapper\n");
         }
-
+		
         virtual void publishGraph(const std::map<uint64_t,Eigen::Vector2i> &connectivity)
         {
             printf("OUT: got graph with %d edges\n", (int)connectivity.size());
@@ -76,6 +80,7 @@ public:
 
         virtual void publishKeyframes( std::vector<FrameHessian*> &frames, bool final, CalibHessian* HCalib)
         {
+			printf("===========publishKeyframes================\n");
             float fx = HCalib->fxl();
             float fy = HCalib->fyl();
             float cx = HCalib->cxl();
@@ -86,9 +91,10 @@ public:
             float cyi = -cy / fy;
 
             // Open stream to write in file "points.ply"
-            std::ofstream output_points;
-            output_points.open("points.ply", std::ios_base::app);
-
+            //std::ofstream output_points;
+            //output_points.open("points.ply", std::ios_base::app);
+			
+			
             for(FrameHessian* f : frames)
             {
                 printf("OUT: KF %d (%s) (id %d, tme %f): %d active, %d marginalized, %d immature points. CameraToWorld:\n",
@@ -99,7 +105,7 @@ public:
                        (int)f->pointHessians.size(), (int)f->pointHessiansMarginalized.size(), (int)f->immaturePoints.size());
                 std::cout << f->shell->camToWorld.matrix3x4() << "\n";
 
-
+				/*
                 int maxWrite = 5;
                 for(PointHessian* p : f->pointHessians)
                 {
@@ -108,25 +114,22 @@ public:
                     maxWrite--;
                     if(maxWrite==0) break;
                 }
+                */
 
                 auto const & m =  f->shell->camToWorld.matrix3x4();
-                auto const & points = f->pointHessiansMarginalized;
+                auto const & points = f->pointHessians;
 
                 for (auto const * p : points) {
-                  float depth = 1.0f / p->idepth;
-                  auto const x = (p->u * fxi + cxi) * depth;
-                  auto const y = (p->v * fyi + cyi) * depth;
-                  auto const z = depth * (1 + 2*fxi);
+					float depth = 1.0f / p->idepth;
+					auto const x = (p->u * fxi + cxi) * depth;
+					auto const y = (p->v * fyi + cyi) * depth;
+					auto const z = depth * (1 + 2*fxi);
 
-                  Eigen::Vector4d camPoint(x, y, z, 1.f);
-                  Eigen::Vector3d worldPoint = m * camPoint;
-
-                  output_points << worldPoint.transpose() << std::endl;
+					Eigen::Vector4d camPoint(x, y, z, 1.f);
+					Eigen::Vector3d worldPoint = m * camPoint;
+					pointCloud.push_back(worldPoint.transpose());
                 }
             }
-
-            // Close steam
-            output_points.close();
         }
 
         virtual void publishCamPose(FrameShell* frame, CalibHessian* HCalib)
@@ -179,7 +182,7 @@ public:
 
 
 };
-
+//end of class
 
 
 }
