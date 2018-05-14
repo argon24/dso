@@ -141,7 +141,6 @@ public:
             std::cout << frame->camToWorld.matrix3x4() << "\n";
         }
 
-
         virtual void pushLiveFrame(FrameHessian* image)
         {
             // can be used to get the raw image / intensity pyramid.

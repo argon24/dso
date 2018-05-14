@@ -1,6 +1,6 @@
 /**
 * This file is part of DSO.
-* 
+*
 * Copyright 2016 Technical University of Munich and Intel.
 * Developed by Jakob Engel <engelj at in dot tum dot de>,
 * for more information see <http://vision.in.tum.de/dso>.
@@ -360,10 +360,47 @@ void KeyFrameDisplay::drawCam(float lineWidth, float* color, float sizeFactor)
 		glVertex3f(sz*(0-cx)/fx,sz*(0-cy)/fy,sz);
 		glVertex3f(sz*(width-1-cx)/fx,sz*(0-cy)/fy,sz);
 
+		glColor3f(0,1,0);
+		glVertex3f(0,0,0);
+		glVertex3f(0,0,2*sz);
+
 		glEnd();
 	glPopMatrix();
 }
 
+void KeyFrameDisplay::drawPlaneInFront(float distance, float lineWidth)
+{
+	if(width == 0)
+		return;
+
+	float d = distance;
+	float size = 0.4;
+
+	glPushMatrix();
+
+		Sophus::Matrix4f m = camToWorld.matrix().cast<float>();
+		glMultMatrixf((GLfloat*)m.data());
+
+		glColor3f(1,1,0);
+
+		glLineWidth(lineWidth);
+		glBegin(GL_LINES);
+
+		glVertex3f(-size,-size,d);
+		glVertex3f( size,-size,d);
+
+		glVertex3f( size,-size,d);
+		glVertex3f( size, size,d);
+
+		glVertex3f( size, size,d);
+		glVertex3f(-size, size,d);
+
+		glVertex3f(-size, size,d);
+		glVertex3f(-size,-size,d);
+
+		glEnd();
+	glPopMatrix();
+}
 
 void KeyFrameDisplay::drawPC(float pointSize)
 {

@@ -1,6 +1,6 @@
 /**
 * This file is part of DSO.
-* 
+*
 * Copyright 2016 Technical University of Munich and Intel.
 * Developed by Jakob Engel <engelj at in dot tum dot de>,
 * for more information see <http://vision.in.tum.de/dso>.
@@ -179,14 +179,18 @@ void PangolinDSOViewer::run()
 			for(KeyFrameDisplay* fh : keyframes)
 			{
 				float blue[3] = {0,0,1};
-				if(this->settings_showKFCameras) fh->drawCam(1,blue,0.1);
-
+				if(this->settings_showKFCameras) {
+					fh->drawCam(1,blue,0.1);
+				}
 
 				refreshed += (int)(fh->refreshPC(refreshed < 10, this->settings_scaledVarTH, this->settings_absVarTH,
 						this->settings_pointCloudMode, this->settings_minRelBS, this->settings_sparsity));
 				fh->drawPC(1);
 			}
-			if(this->settings_showCurrentCamera) currentCam->drawCam(2,0,0.2);
+			if(this->settings_showCurrentCamera) {
+				currentCam->drawCam(2,0,0.2);
+				currentCam->drawPlaneInFront(0.5);
+			}
 			drawConstraints();
 			lk3d.unlock();
 		}

@@ -315,6 +315,12 @@ private:
 	bool needToKetchupMapping;
 
 	int lastRefStopID;
+
+public:
+	SE3 camToWorld;
+	SE3 getCameraPose(){
+		return camToWorld;
+	}
 };
 }
 
