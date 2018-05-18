@@ -374,7 +374,7 @@ void KeyFrameDisplay::drawPlaneInFront(float distance, float lineWidth)
 		return;
 
 	float d = distance;
-	float size = 0.4;
+	float size = 0.25;
 
 	glPushMatrix();
 
